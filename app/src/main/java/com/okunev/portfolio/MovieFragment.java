@@ -43,27 +43,53 @@ public class MovieFragment extends Fragment {
     TextView name;
     ImageView imageView;
     OkHttpClient client;
+    String myValue;
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.movie_fragment,
                 container, false);
-        String myValue = this.getArguments().getString("id");
-String url = "https://api.themoviedb.org/3/movie/"+myValue+"?api_key=183ca5d3a0f8e8239913bd2cda7c732e";
-
+        if (savedInstanceState != null) {
+            myValue  = savedInstanceState.getString("id");
+        }
         imageView = (ImageView)view.findViewById(R.id.poster);
         name = (TextView)view.findViewById(R.id.header);
         date = (TextView)view.findViewById(R.id.date);
         time = (TextView)view.findViewById(R.id.time);
         rating = (TextView)view.findViewById(R.id.rating);
         plot = (TextView)view.findViewById(R.id.plot);
-        try {
-            run(url);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         return view;
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // During startup, check if there are arguments passed to the fragment.
+        // onStart is a good place to do this because the layout has already been
+        // applied to the fragment at this point so we can safely call the method
+        // below that sets the article text.
+        Bundle args = getArguments();
+        if (args != null) {
+            myValue = args.getString("id");
+            String url = "https://api.themoviedb.org/3/movie/"+myValue+"?api_key=183ca5d3a0f8e8239913bd2cda7c732e";
+            // Set article based on argument passed in
+            try {
+                run(url);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.d("DRE","pss "+myValue);
+            String url = "https://api.themoviedb.org/3/movie/"+myValue+"?api_key=183ca5d3a0f8e8239913bd2cda7c732e";
+            // Set article based on saved instance state defined during onCreateView
+            try {
+                run(url);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     public void run(String url) throws IOException {
         client = new OkHttpClient();
@@ -134,6 +160,15 @@ String url = "https://api.themoviedb.org/3/movie/"+myValue+"?api_key=183ca5d3a0f
                 }
             }
         });
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Save the current article selection in case we need to recreate the fragment
+        outState.putString("id", myValue);
     }
 
 }

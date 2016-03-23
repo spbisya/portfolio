@@ -38,7 +38,8 @@ public class GridFragment extends Fragment {
     OkHttpClient client;
     OnFragmentSelectedListener mCallback;
     ArrayList<String> urls = new ArrayList<>();
-ArrayList<String> ids = new ArrayList<>();
+    ArrayList<String> ids = new ArrayList<>();
+
     // Container Activity must implement this interface
     public interface OnFragmentSelectedListener {
         public void onMovieSelected(int position, String id);
@@ -65,7 +66,7 @@ ArrayList<String> ids = new ArrayList<>();
         Request request = new Request.Builder()
                 .url(url)
                 .build();
-        Log.d("DRE","request is built");
+        Log.d("DRE", "request is built");
         // Response response = client.newCall(request).execute();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -94,12 +95,9 @@ ArrayList<String> ids = new ArrayList<>();
                     gridview.post(new Runnable() {
                         public void run() {
                             gridview.setAdapter(new ImageAdapter(getActivity(), urls));
-                            WindowManager wm = (WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE);
-                            Display display = wm.getDefaultDisplay();
-                            Point size = new Point();
-                            display.getSize(size);
-                            int width = size.x;
-                            gridview.setNumColumns(width / 185);
+                            gridview.setNumColumns(gridview.getWidth() / 185);
+                            Log.d("DRE", "" + gridview.getColumnWidth() + " " + gridview.getWidth());
+                            gridview.setVerticalSpacing(5);
                             gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                 public void onItemClick(AdapterView<?> parent, View v,
                                                         int position, long id) {
@@ -120,28 +118,48 @@ ArrayList<String> ids = new ArrayList<>();
     }
 
 
-
     GridView gridview;
-    @Nullable
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.grid_fragment,
                 container, false);
-        String myValue = this.getArguments().getString("url");
-        urls = new ArrayList<>();
         gridview = (GridView) view.findViewById(R.id.grid);
+        return view;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        String myValue = "";
+        try {
+            myValue = getArguments().getString("url");
+        } catch (Exception l) {
+
+            myValue = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc";
+        }
+        urls = new ArrayList<>();
+
         String api_key = "&api_key=183ca5d3a0f8e8239913bd2cda7c732e";
         String url = myValue + api_key;
         try {
-            Log.d("DRE","Start method");
+            Log.d("DRE", "Start method");
             run(url);
             Log.d("DRE", "End method");
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-        return view;
+        // When in two-pane layout, set the listview to highlight the selected list item
+        // (We do this during onStart because at the point the listview is available.)
+        if (getFragmentManager().findFragmentById(R.id.gr_fragment) != null) {
+            gridview.setChoiceMode(GridView.CHOICE_MODE_SINGLE);
+        }
     }
 }
