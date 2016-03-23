@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.okunev.portfolio.MainActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/scrollView" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/caption"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:textSize="@dimen/abc_text_size_subtitle_material_toolbar"
+                android:id="@+id/captionText" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/spotify"
+                android:id="@+id/spotifyButton"
+                android:layout_marginTop="39dp"
+                android:layout_below="@+id/captionText"
+                android:background="#c25b2b"
+                android:layout_alignStart="@+id/captionText"
+                android:layout_alignEnd="@+id/captionText" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/scores"
+                android:id="@+id/ScoresButton"
+                android:layout_below="@+id/spotifyButton"
+                android:layout_alignStart="@+id/spotifyButton"
+                android:layout_alignEnd="@+id/spotifyButton"
+                android:background="#c25b2b"
+                android:onClick="onClick" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/library"
+                android:id="@+id/libraryButton"
+                android:layout_below="@+id/ScoresButton"
+                android:layout_alignStart="@+id/ScoresButton"
+                android:layout_alignEnd="@+id/ScoresButton"
+                android:background="#c25b2b"
+                android:onClick="onClick" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/bigger"
+                android:id="@+id/biggerButton"
+                android:layout_below="@+id/libraryButton"
+                android:layout_alignEnd="@+id/libraryButton"
+                android:layout_alignStart="@+id/libraryButton"
+                android:background="#c25b2b"
+                android:onClick="onClick2" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/xyz"
+                android:id="@+id/xyzButton"
+                android:layout_below="@+id/biggerButton"
+                android:layout_alignStart="@+id/biggerButton"
+                android:layout_alignEnd="@+id/biggerButton"
+                android:background="#c25b2b"
+                android:onClick="onClick2" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/capstone"
+                android:id="@+id/capstoneButton"
+                android:background="#a00237"
+                android:layout_below="@+id/xyzButton"
+                android:layout_centerHorizontal="true"
+                android:onClick="onClick3" />
+        </RelativeLayout>
+    </ScrollView>
+
+</RelativeLayout>
