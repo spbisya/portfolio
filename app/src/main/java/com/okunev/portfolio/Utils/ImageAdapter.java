@@ -1,14 +1,14 @@
-package com.okunev.portfolio;
+package com.okunev.portfolio.Utils;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
-import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 
+import com.okunev.portfolio.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -19,11 +19,14 @@ import java.util.ArrayList;
 public class ImageAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<String> urls = new ArrayList<>();
+    Boolean local = false;
 
     public ImageAdapter(Context c, ArrayList<String> urls) {
         this.urls = urls;
         mContext = c;
     }
+
+
 
     public int getCount() {
         return urls.size();
@@ -37,22 +40,20 @@ public class ImageAdapter extends BaseAdapter {
         return 0;
     }
 
-    // create a new ImageView for each item referenced by the Adapter
+
     public View getView(int position, View convertView, ViewGroup parent) {
         ImageView imageView;
         if (convertView == null) {
-            // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
-            //  imageView.setLayoutParams(new GridView.LayoutParams(185, 277));
-            imageView.setLayoutParams(new GridView.LayoutParams(185, 277));
-            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+           imageView.setLayoutParams(new GridView.LayoutParams(185, 278));
+     //       imageView.setLayoutParams(new GridView.LayoutParams(GridView.LayoutParams.MATCH_PARENT, GridView.LayoutParams.WRAP_CONTENT));
+           // imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
         } else {
             imageView = (ImageView) convertView;
         }
-        Picasso.with(mContext).load(urls.get(position)).placeholder(R.drawable.fg)
+        Picasso.with(mContext).load(urls.get(position)).placeholder(R.drawable.fg).error(R.drawable.err)
                 .into(imageView);
-        // imageView.setImageResource(mThumbIds[position]);
         return imageView;
     }
 }
