@@ -10,4 +10,7 @@
     <string name="popular_movies">Popular Movies</string>
     <string name="top_rated">Top rated</string>
     <string name="loading">Loading...</string>
+    <string name="fav">Add to favourites</string>
+    <string name="favourite">Favourites</string>
+    <string name="share">Share</string>
 </resources>

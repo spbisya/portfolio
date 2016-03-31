@@ -1,164 +1,168 @@
 package com.okunev.portfolio;
 
-import android.app.Fragment;
-import android.graphics.Point;
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
-
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
-import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.GridView;
 import android.widget.Toast;
 
-import java.io.IOException;
+import java.net.InetAddress;
 
 /**
  * Created by gwa on 3/19/16.
  */
 public class Spotify extends AppCompatActivity implements GridFragment.OnFragmentSelectedListener {
     String url1;
-    String currurl;
+    Menu myMenu;
+    public String youtube_url = "";
 
-    /**
-     * Called when the activity is first created.
-     */
-
+    public void setYoutube_url(String youtube_url) {
+        this.youtube_url = youtube_url;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.article_view);
-        currurl = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc";
-        getSupportActionBar().setTitle("Pop movies");
-        // Check that the activity is using the layout version with
-        // the fragment_container FrameLayout
-        if (findViewById(R.id.gr_fragment) != null) {
-            // However, if we're being restored from a previous state,
-            // then we don't need to do anything and should return or else
-            // we could end up with overlapping fragments.
-            if (savedInstanceState != null) {
-                GridFragment firstFragment = new GridFragment();
-                Bundle bundle = new Bundle();
-                bundle.putString("url", savedInstanceState.getString("url1"));
-                firstFragment.setArguments(bundle);
+        if(isNetworkConnected()) {
+            url1 = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc";
+            getSupportActionBar().setTitle("Pop movies");
+            if (findViewById(R.id.gr_fragment) != null) {
+                if (savedInstanceState != null) {
+                    try {
+                        GridFragment firstFragment = new GridFragment();
+                        Bundle bundle = new Bundle();
+                        bundle.putString("url", savedInstanceState.getString("url1"));
+                        firstFragment.setArguments(bundle);
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.gr_fragment, firstFragment).commit();
+                    }
+                    catch (Exception l){
+                        Toast.makeText(this,l.getMessage(),Toast.LENGTH_LONG).show();
+                    }
+                    return;
+                }
+                try{
+                GridFragment firstFragment = (GridFragment) getSupportFragmentManager().findFragmentById(R.id.gr_fragment);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.gr_fragment, firstFragment).commit();
-                return;
+                }
+                catch (Exception l){
+                    Toast.makeText(this,l.getMessage(),Toast.LENGTH_LONG).show();
+                }
+            } else {
+                if (savedInstanceState != null) {
+                    return;
+                }
+                try{
+                GridFragment firstFragment = new GridFragment();
+                Bundle bundle = new Bundle();
+                url1 = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc";
+                bundle.putString("url", url1);
+                firstFragment.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.container, firstFragment).commit();
+                }
+                catch (Exception l){
+                    Toast.makeText(this,l.getMessage(),Toast.LENGTH_LONG).show();
+                }
             }
-            GridFragment firstFragment = (GridFragment) getSupportFragmentManager().findFragmentById(R.id.gr_fragment);
-            // In case this activity was started with special instructions from an
-            // Intent, pass the Intent's extras to the fragment as arguments
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.gr_fragment, firstFragment).commit();
-        } else {
-            if (savedInstanceState != null) {
-                return;
-            }
-            // Create a new Fragment to be placed in the activity layout
-            GridFragment firstFragment = new GridFragment();
+        }
+        else
+        {
+            try{
+            getSupportActionBar().setTitle("Favourites");
             Bundle bundle = new Bundle();
-
-            url1 = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc";
+            url1 = "local";
             bundle.putString("url", url1);
-            // In case this activity was started with special instructions from an
-            // Intent, pass the Intent's extras to the fragment as arguments
-            firstFragment.setArguments(bundle);
-
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container, firstFragment).commit();
+            if (findViewById(R.id.gr_fragment) != null) {
+                GridFragment fragInfo = new GridFragment();
+                fragInfo.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.gr_fragment, fragInfo).commit();
+            } else {
+                GridFragment fragInfo = new GridFragment();
+                fragInfo.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.container, fragInfo).commit();
+            }
+            }
+            catch (Exception l){
+                Toast.makeText(this,l.getMessage(),Toast.LENGTH_LONG).show();
+            }
         }
     }
 
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
+    }
 
     @Override
-    public void onMovieSelected(int position, String id) {
+    public void onMovieSelected(int position, String id, Boolean isLocal) {
+        try{
         getSupportActionBar().setTitle("Movie details");
-        GridFragment articleFrag;
-        try {
-            articleFrag = (GridFragment) getSupportFragmentManager().findFragmentById(R.id.gr_fragment);
-        } catch (Exception l) {
-            articleFrag = null;
+        if(myMenu != null){
+            myMenu.findItem(R.id.action_share)
+                    .setVisible(true);
+            myMenu.findItem(R.id.action_settings)
+                    .setVisible(false);
+            myMenu.findItem(R.id.action_settings1)
+                    .setVisible(false);
+            myMenu.findItem(R.id.action_local)
+                    .setVisible(false);
         }
-        if (articleFrag != null) {
-            // If article frag is available, we're in two-pane layout...
-
-            // Call a method in the ArticleFragment to update its content
-            String url = "https://api.themoviedb.org/3/movie/" + id + "?api_key=183ca5d3a0f8e8239913bd2cda7c732e";
-//              try {
-//                  articleFrag.run(url);
-//              } catch (IOException e) {
-//                  e.printStackTrace();
-//              }
+        GridFragment gridFragment;
+        try {
+            gridFragment = (GridFragment) getSupportFragmentManager().findFragmentById(R.id.gr_fragment);
+        } catch (Exception l) {
+            gridFragment = null;
+        }
+        if (gridFragment != null) {
             MovieFragment newFragment = new MovieFragment();
             Bundle args = new Bundle();
             args.putString("id", id);
+            args.putBoolean("isLocal", isLocal);
             newFragment.setArguments(args);
-
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-            // Replace whatever is in the fragment_container view with this fragment,
-            // and add the transaction to the back stack so the user can navigate back
-            transaction.replace(R.id.container, newFragment);
-          //  transaction.addToBackStack(null);
-
-            // Commit the transaction
+            transaction.replace(R.id.mov_fragment, newFragment);
             transaction.commit();
         } else {
-            // Otherwise, we're in the one-pane layout and must swap frags...
-
-            // Create fragment and give it an argument for the selected article
             MovieFragment newFragment = new MovieFragment();
             Bundle args = new Bundle();
             args.putString("id", id);
+            args.putBoolean("isLocal", isLocal);
             newFragment.setArguments(args);
-
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-            // Replace whatever is in the fragment_container view with this fragment,
-            // and add the transaction to the back stack so the user can navigate back
             transaction.replace(R.id.container, newFragment);
             transaction.addToBackStack(null);
-
-            // Commit the transaction
             transaction.commit();
+        }
+        }
+        catch (Exception l){
+            Toast.makeText(this,l.getMessage(),Toast.LENGTH_LONG).show();
         }
     }
 
     @Override
     public void onBackPressed() {
         if (getSupportActionBar().getTitle().equals("Movie details")) {
-//            Boolean twoPanel = false;
-//            GridFragment articleFrag;
-//            try {
-//                articleFrag = (GridFragment) getSupportFragmentManager().findFragmentById(R.id.gr_fragment);
-//            } catch (Exception l) {
-//                articleFrag = null;
-//            }
-//            if (articleFrag != null) {
-//                twoPanel = true;
-//                // If article frag is available, we're in two-pane layout...
-//            }
-
             getSupportActionBar().setTitle("Pop movies");
-//            Bundle bundle = new Bundle();
-//            bundle.putString("url", currurl);
-//            if (twoPanel) {
-//                getSupportFragmentManager().beginTransaction()
-//                        .replace(R.id.gr_fragment, articleFrag).commit();
-//            } else {
-//                GridFragment fragInfo = new GridFragment();
-//                fragInfo.setArguments(bundle);
-//                getSupportFragmentManager().beginTransaction()
-//                        .replace(R.id.container, fragInfo).commit();
-//            }
+            if(myMenu != null){
+                myMenu.findItem(R.id.action_share)
+                        .setVisible(false);
+                myMenu.findItem(R.id.action_settings)
+                        .setVisible(true);
+                myMenu.findItem(R.id.action_settings1)
+                        .setVisible(true);
+                myMenu.findItem(R.id.action_local)
+                        .setVisible(true);
+            }
         }
         super.onBackPressed();
     }
@@ -167,48 +171,58 @@ public class Spotify extends AppCompatActivity implements GridFragment.OnFragmen
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_movies, menu);
+        myMenu = menu;
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         Boolean twoPanel = false;
-        GridFragment articleFrag;
+        GridFragment gr;
         try {
-            articleFrag = (GridFragment) getSupportFragmentManager().findFragmentById(R.id.gr_fragment);
+            gr = (GridFragment) getSupportFragmentManager().findFragmentById(R.id.gr_fragment);
         } catch (Exception l) {
-            articleFrag = null;
+            gr = null;
         }
-        if (articleFrag != null) {
+        if (gr != null) {
             twoPanel = true;
             // If article frag is available, we're in two-pane layout...
         }
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             getSupportActionBar().setTitle("Pop movies");
             Bundle bundle = new Bundle();
             url1 = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc";
-            currurl = url1;
             bundle.putString("url", url1);
             if (twoPanel) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.gr_fragment, articleFrag).commit();
+                        .replace(R.id.gr_fragment, gr).commit();
             } else {
                 GridFragment fragInfo = new GridFragment();
                 fragInfo.setArguments(bundle);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.container, fragInfo).commit();
             }
-
-        } else {
+        } else if (id == R.id.action_settings1) {
             getSupportActionBar().setTitle("Pop movies");
             Bundle bundle = new Bundle();
             url1 = "http://api.themoviedb.org/3/discover/movie/?certification_country=US&certification=R&sort_by=vote_average.desc";
-            currurl = url1;
+            bundle.putString("url", url1);
+            if (twoPanel) {
+                GridFragment fragInfo = new GridFragment();
+                fragInfo.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.gr_fragment, fragInfo).commit();
+            } else {
+                GridFragment fragInfo = new GridFragment();
+                fragInfo.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.container, fragInfo).commit();
+            }
+        } else if (id == R.id.action_local){
+            getSupportActionBar().setTitle("Favourites");
+            Bundle bundle = new Bundle();
+            url1 = "local";
             bundle.putString("url", url1);
             if (twoPanel) {
                 GridFragment fragInfo = new GridFragment();
@@ -222,14 +236,20 @@ public class Spotify extends AppCompatActivity implements GridFragment.OnFragmen
                         .replace(R.id.container, fragInfo).commit();
             }
         }
+        else{
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, "This is the best movie! You should watch it!!!\n"
+            +youtube_url);
+            sendIntent.setType("text/plain");
+            startActivity(sendIntent);
+        }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
-        // Save the current article selection in case we need to recreate the fragment
         outState.putString("url1", url1);
     }
 

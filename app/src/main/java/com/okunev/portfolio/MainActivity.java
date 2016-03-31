@@ -24,8 +24,6 @@ Button spotify = (Button)findViewById(R.id.spotifyButton);
     }
 
     public void onClick(View v){
-        Intent intent = new Intent(MainActivity.this,Abs.class);
-        startActivity(intent);
         Toast.makeText(MainActivity.this, "This button will launch my "+
                 ((Button)v).getText().toString(),Toast.LENGTH_LONG).show();
     }

@@ -2,20 +2,21 @@ package com.okunev.portfolio;
 
 
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Point;
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
+
+import com.okunev.portfolio.R;
+import com.okunev.portfolio.Utils.DBHelper;
+import com.okunev.portfolio.Utils.ImageAdapter;
+import com.okunev.portfolio.Utils.ImageLocalAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,7 +27,6 @@ import java.util.ArrayList;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -37,20 +37,17 @@ import okhttp3.Response;
 public class GridFragment extends Fragment {
     OkHttpClient client;
     OnFragmentSelectedListener mCallback;
-    ArrayList<String> urls = new ArrayList<>();
-    ArrayList<String> ids = new ArrayList<>();
+    ArrayList<String> urls, ids = new ArrayList<>();
+    DBHelper mydb;
+    GridView gridview;
 
-    // Container Activity must implement this interface
     public interface OnFragmentSelectedListener {
-        public void onMovieSelected(int position, String id);
+        void onMovieSelected(int position, String id, Boolean isLocal);
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-
-        // This makes sure that the container activity has implemented
-        // the callback interface. If not, it throws an exception
         try {
             mCallback = (OnFragmentSelectedListener) activity;
 
@@ -60,6 +57,74 @@ public class GridFragment extends Fragment {
         }
     }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.grid_fragment,
+                container, false);
+        gridview = (GridView) view.findViewById(R.id.grid);
+        return view;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        String myValue = "";
+        try {
+            myValue = getArguments().getString("url");
+        } catch (Exception l) {
+
+            myValue = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc";
+        }
+        if(myValue.equals("local")){
+            mydb = new DBHelper(getActivity());
+            if(mydb.numberOfRows()>0) {
+                ArrayList<Bitmap> posters = mydb.getAllFilmPosters();
+                final ArrayList<String> film_ids = mydb.getAllNumbers();
+                final ImageLocalAdapter imageLocalAdapter = new ImageLocalAdapter(getActivity(), posters);
+                gridview.post(new Runnable() {
+                    public void run() {
+                        gridview.setAdapter(imageLocalAdapter);
+                        gridview.setNumColumns(gridview.getWidth() / 185);
+                        gridview.setVerticalSpacing(5);
+                        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                            public void onItemClick(AdapterView<?> parent, View v,
+                                                    int position, long id) {
+                                mCallback.onMovieSelected(position, film_ids.get(position),true);
+                                Toast.makeText(getActivity(), "" + position,
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                });
+            }
+            else{
+                Toast.makeText(getActivity(), "There are no favourite films yet.\nGo and add some!",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+        else {
+            urls = new ArrayList<>();
+            String api_key = "&api_key=183ca5d3a0f8e8239913bd2cda7c732e";
+            String url = myValue + api_key;
+            try {
+                Log.d("DRE", "Start method");
+                run(url);
+                Log.d("DRE", "End method");
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (getFragmentManager().findFragmentById(R.id.gr_fragment) != null) {
+            gridview.setChoiceMode(GridView.CHOICE_MODE_SINGLE);
+        }
+    }
 
     public void run(String url) throws IOException {
         client = new OkHttpClient();
@@ -101,7 +166,7 @@ public class GridFragment extends Fragment {
                             gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                 public void onItemClick(AdapterView<?> parent, View v,
                                                         int position, long id) {
-                                    mCallback.onMovieSelected(position, ids.get(position));
+                                    mCallback.onMovieSelected(position, ids.get(position),false);
                                     Toast.makeText(getActivity(), "" + position,
                                             Toast.LENGTH_SHORT).show();
                                 }
@@ -118,48 +183,4 @@ public class GridFragment extends Fragment {
     }
 
 
-    GridView gridview;
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.grid_fragment,
-                container, false);
-        gridview = (GridView) view.findViewById(R.id.grid);
-        return view;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        String myValue = "";
-        try {
-            myValue = getArguments().getString("url");
-        } catch (Exception l) {
-
-            myValue = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc";
-        }
-        urls = new ArrayList<>();
-
-        String api_key = "&api_key=183ca5d3a0f8e8239913bd2cda7c732e";
-        String url = myValue + api_key;
-        try {
-            Log.d("DRE", "Start method");
-            run(url);
-            Log.d("DRE", "End method");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // When in two-pane layout, set the listview to highlight the selected list item
-        // (We do this during onStart because at the point the listview is available.)
-        if (getFragmentManager().findFragmentById(R.id.gr_fragment) != null) {
-            gridview.setChoiceMode(GridView.CHOICE_MODE_SINGLE);
-        }
-    }
 }
